@@ -1,0 +1,13 @@
+C:\Users\mac\source\repos\Control\Control\bin\Release\EngineIoClientDotNet.dll
+C:\Users\mac\source\repos\Control\Control\bin\Release\Newtonsoft.Json.dll
+C:\Users\mac\source\repos\Control\Control\bin\Release\SocketIoClientDotNet.dll
+C:\Users\mac\source\repos\Control\Control\bin\Release\WebSocket4Net.dll
+C:\Users\mac\source\repos\Control\Control\bin\Release\Newtonsoft.Json.xml
+C:\Users\mac\source\repos\Control\Control\obj\Release\Controller.csprojAssemblyReference.cache
+C:\Users\mac\source\repos\Control\Control\obj\Release\Controller.csproj.CoreCompileInputs.cache
+C:\Users\mac\source\repos\Control\Control\obj\Release\Controller.csproj.CopyComplete
+C:\Users\mac\source\repos\Control\Control\bin\Release\Controller.exe.config
+C:\Users\mac\source\repos\Control\Control\bin\Release\Controller.exe
+C:\Users\mac\source\repos\Control\Control\bin\Release\Controller.pdb
+C:\Users\mac\source\repos\Control\Control\obj\Release\Controller.exe
+C:\Users\mac\source\repos\Control\Control\obj\Release\Controller.pdb
