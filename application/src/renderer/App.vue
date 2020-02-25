@@ -5,11 +5,13 @@
 </template>
 
 <script>
-  export default {
-    name: 'a'
+import ip from 'ip'
+export default {
+  name: 'main',
+  data () {
+    return {
+      ip: ip.address()
+    }
   }
+}
 </script>
-
-<style>
-  /* CSS */
-</style>

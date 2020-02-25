@@ -1,7 +1,7 @@
 {
-  "name": "a",
+  "name": "handoelu",
   "version": "0.0.1",
-  "author": "zhihao <zhihao@rd01de-MacBook-Pro.local>",
+  "author": "khczhihao",
   "description": "An electron-vue project",
   "license": null,
   "main": "./dist/electron/main.js",
@@ -19,7 +19,7 @@
     "postinstall": "npm run lint:fix"
   },
   "build": {
-    "productName": "a",
+    "productName": "handoelu",
     "appId": "com.example.yourapp",
     "directories": {
       "output": "build"
@@ -53,8 +53,12 @@
     }
   },
   "dependencies": {
-    "vue": "^2.5.16",
+    "@chenfengyuan/vue-qrcode": "^1.0.2",
     "axios": "^0.18.0",
+    "express": "^4.17.1",
+    "ip": "^1.1.5",
+    "socket.io": "^2.3.0",
+    "vue": "^2.5.16",
     "vue-electron": "^1.0.6",
     "vue-router": "^3.0.1",
     "vuex": "^3.0.1",

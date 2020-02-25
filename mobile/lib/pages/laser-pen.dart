@@ -1,4 +1,10 @@
+import 'dart:async';
+import 'dart:convert';
+import 'package:socket_io_client/socket_io_client.dart' as IO;
+import 'package:sensors/sensors.dart';
 import 'package:flutter/material.dart';
+
+import '../env.dart' as env;
 
 class Main extends StatefulWidget {
     @override
@@ -6,7 +12,63 @@ class Main extends StatefulWidget {
 }
 
 class PageState extends State<Main> {
-    double sensitivity = 0;
+    var gyroscopeEvent;
+    var accelerometerEvent;
+    String message = 'aaaa';
+    IO.Socket socket = IO.io(env.websocketHost, <String, dynamic> {
+        'transports': ['websocket']
+    });
+    Timer timer;
+    double sensitivity = 0.0;
+    GyroscopeEvent gyroscopeResult = GyroscopeEvent(0, 0, 0);
+    AccelerometerEvent accelerometerResult = AccelerometerEvent(0, 0, 0);
+    PageState() {
+        var duration = Duration(
+            microseconds: 1000
+        );
+        this.timer = Timer.periodic(duration, (Timer timer) {
+            this.update();
+        });
+        this.gyroscopeEvent = gyroscopeEvents.listen((GyroscopeEvent event) {
+            gyroscopeResult = event;
+        });
+        this.accelerometerEvent = accelerometerEvents.listen((AccelerometerEvent event) {
+            accelerometerResult = event;
+        });
+        this.socket.on('connect', (_) {
+            this.message = 'connect';
+        });
+        this.socket.on('error', (data) {
+            this.message = data.toString();
+        });
+        this.socket.on('connect_error', (data) {
+            print(data);
+            this.message = data.toString();
+        });
+    }
+    update() {
+        setState(() {});
+        Map<String, dynamic> reslut = {
+            "gyroscope": {
+                "x": this.gyroscopeResult.x,
+                "y": this.gyroscopeResult.y,
+                "z": this.gyroscopeResult.z
+            },
+            "accelerometer": {
+                "x": this.accelerometerResult.x,
+                "y": this.accelerometerResult.y,
+                "z": this.accelerometerResult.z
+            }
+        };
+        this.socket.emit('mobile-update', json.encode(reslut));
+    }
+    @override
+    dispose() {
+        this.timer.cancel();
+        this.gyroscopeEvent.cancel();
+        this.accelerometerEvent.cancel();
+        super.dispose();
+    }
     @override
     Widget build(BuildContext context) {
         return Scaffold(
@@ -16,14 +78,13 @@ class PageState extends State<Main> {
             body: Column(
                 children: <Widget>[
                     Text(sensitivity.toString()),
+                    Text(message.toString()),
                     Slider(
                         min: 0.0,
                         max: 100.0,
                         value: sensitivity,
                         onChanged: (newValue) {
-                            setState(() {
-                                sensitivity = newValue;
-                            });
+                            sensitivity = newValue;
                         }
                     ),
                     Row(
@@ -32,17 +93,11 @@ class PageState extends State<Main> {
                             RaisedButton(
                                 child: Text('關機'),
                                 onPressed: () {
-                                    print('OuO');
+                                    print('==');
                                 },
                             ),
                             RaisedButton(
-                                child: Text('按鍵代碼'),
-                                onPressed: () {
-                                    print('OuO');
-                                },
-                            ),
-                            RaisedButton(
-                                child: Text('推播訊息'),
+                                child: Text('重置'),
                                 onPressed: () {
                                     print('OuO');
                                 },
