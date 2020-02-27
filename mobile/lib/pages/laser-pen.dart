@@ -1,10 +1,9 @@
 import 'dart:async';
 import 'dart:convert';
+import 'package:barcode_scan/barcode_scan.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 import 'package:sensors/sensors.dart';
 import 'package:flutter/material.dart';
-
-import '../env.dart' as env;
 
 class Main extends StatefulWidget {
     @override
@@ -14,14 +13,19 @@ class Main extends StatefulWidget {
 class PageState extends State<Main> {
     var gyroscopeEvent;
     var accelerometerEvent;
-    String message = 'aaaa';
-    IO.Socket socket = IO.io(env.websocketHost, <String, dynamic> {
-        'transports': ['websocket']
-    });
+    bool left = false;
+    bool right = false;
+    bool middle = false;
+    bool enable = true;
+    bool connentd = false;
+    bool doConnent = false;
     Timer timer;
+    String connentError = '';
     double sensitivity = 0.0;
+    IO.Socket socket;
     GyroscopeEvent gyroscopeResult = GyroscopeEvent(0, 0, 0);
     AccelerometerEvent accelerometerResult = AccelerometerEvent(0, 0, 0);
+
     PageState() {
         var duration = Duration(
             microseconds: 1000
@@ -35,20 +39,31 @@ class PageState extends State<Main> {
         this.accelerometerEvent = accelerometerEvents.listen((AccelerometerEvent event) {
             accelerometerResult = event;
         });
-        this.socket.on('connect', (_) {
-            this.message = 'connect';
+    }
+
+    connectSocket(String host) {
+        this.socket = IO.io(host, <String, dynamic> {
+              'transports': ['websocket']
+        });
+        this.socket.on('connect', (data) {
+            this.connentd = true;
         });
         this.socket.on('error', (data) {
-            this.message = data.toString();
+            this.connentError = data;
         });
         this.socket.on('connect_error', (data) {
-            print(data);
-            this.message = data.toString();
+            this.connentError = data.toString();
+            this.connentd = false;
         });
     }
+
     update() {
         setState(() {});
         Map<String, dynamic> reslut = {
+            "sensitivity": this.sensitivity,
+            "left": this.left,
+            "right": this.right,
+            "middle": this.middle,
             "gyroscope": {
                 "x": this.gyroscopeResult.x,
                 "y": this.gyroscopeResult.y,
@@ -60,49 +75,107 @@ class PageState extends State<Main> {
                 "z": this.accelerometerResult.z
             }
         };
-        this.socket.emit('mobile-update', json.encode(reslut));
+        this.emit('mobile-update', json.encode(reslut));
     }
+
+    emit(String channel, [String reslut = '']) {
+        if (this.doConnent && this.connentd && this.enable) {
+            this.socket.emit(channel, reslut);
+        }
+    }
+
     @override
     dispose() {
         this.timer.cancel();
+        this.socket.close();
         this.gyroscopeEvent.cancel();
         this.accelerometerEvent.cancel();
         super.dispose();
     }
+
     @override
     Widget build(BuildContext context) {
         return Scaffold(
             appBar: AppBar(
-                title: Text('Home Page')
+                title: Text('雷射筆')
             ),
             body: Column(
                 children: <Widget>[
-                    Text(sensitivity.toString()),
-                    Text(message.toString()),
-                    Slider(
-                        min: 0.0,
-                        max: 100.0,
-                        value: sensitivity,
-                        onChanged: (newValue) {
-                            sensitivity = newValue;
-                        }
+                    Visibility(
+                        visible: this.doConnent == false,
+                        child: RaisedButton(
+                            child: Text('掃描QRCODE'),
+                            onPressed: () async {
+                                try {
+                                    var barcode = await BarcodeScanner.scan();
+                                    this.doConnent = true;
+                                    this.connectSocket(barcode);
+                                } catch (e) {
+                                    print(e);
+                                }
+                            }
+                        )
                     ),
-                    Row(
-                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                        children: <Widget>[
-                            RaisedButton(
-                                child: Text('關機'),
-                                onPressed: () {
-                                    print('==');
-                                },
-                            ),
-                            RaisedButton(
-                                child: Text('重置'),
-                                onPressed: () {
-                                    print('OuO');
-                                },
-                            )
-                        ]
+                    Visibility(
+                        visible: this.doConnent == true && this.connentError != '',
+                        child: Text(this.connentError)
+                    ),
+                    Visibility(
+                        visible: this.doConnent == true && this.connentd == false && this.connentError == '',
+                        child: Text('連線中')
+                    ),
+                    Visibility(
+                        visible: this.doConnent == true && this.connentd == true && this.connentError == '',
+                        child: Column(
+                            children: <Widget>[
+                                Slider(
+                                    min: 0.0,
+                                    max: 100.0,
+                                    value: this.sensitivity,
+                                    onChanged: (newValue) {
+                                        this.sensitivity = newValue;
+                                    }
+                                ),
+                                Row(
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    children: <Widget>[
+                                        RaisedButton(
+                                            child: Text(this.enable ? '關機' : '開機'),
+                                            onPressed: () {
+                                                this.enable = !this.enable;
+                                            }
+                                        ),
+                                        RaisedButton(
+                                            child: Text('重置'),
+                                            onPressed: () {
+                                                this.emit('mobile-to-center');
+                                            }
+                                        ),
+                                        RaisedButton(
+                                            child: Text('左鍵'),
+                                            onPressed: () {},
+                                            onHighlightChanged: (bool state) {
+                                                this.left = state;
+                                            }
+                                        ),
+                                        RaisedButton(
+                                            child: Text('中鍵'),
+                                            onPressed: () {},
+                                            onHighlightChanged: (bool state) {
+                                                this.middle = state;
+                                            }
+                                        ),
+                                        RaisedButton(
+                                            child: Text('右鍵'),
+                                            onPressed: () {},
+                                            onHighlightChanged: (bool state) {
+                                                this.right = state;
+                                            }
+                                        )
+                                    ]
+                                )
+                            ]
+                        )
                     )
                 ]
             )

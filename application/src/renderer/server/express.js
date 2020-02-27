@@ -13,6 +13,15 @@ https.listen(8080, 'localhost', () => {
     user.on('mobile-update', (data) => {
       console.log(data)
     })
+    user.on('disconnect', () => {
+      console.log('QQ')
+    })
+    user.on('macos', (data) => {
+      console.log(data)
+    })
+    setInterval(() => {
+      user.emit('MouseTo', 0, 0)
+    }, 5000)
   })
 
   console.log('done =>', ip.address())
